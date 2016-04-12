@@ -1,5 +1,4 @@
 import asyncio
-import os
 import random
 import time
 import gear_finder
@@ -7,6 +6,7 @@ import schedule
 import squad as s_maker
 import tag as t_handler
 import config
+import discord
 from discord.ext import commands
 
 
@@ -56,9 +56,9 @@ def current():
     yield from bot.say(rotations.maps(0))
 
 
-@bot.command(help='Gets the next maps and modes on Splatoon')
+@bot.command(name='next', help='Gets the next maps and modes on Splatoon')
 @asyncio.coroutine
-def next():
+def s_next():
     yield from bot.say(rotations.maps(1))
 
 
@@ -74,7 +74,7 @@ def schedule():
     yield from bot.say(rotations.maps())
 
 
-# --- CHOOSE AND SHUFFLE --- #
+# --- CHOOSE AND RANDOM --- #
 
 @bot.command(help='Randomly select an entry from a list')
 @asyncio.coroutine
@@ -195,7 +195,8 @@ def _remove(t: str):
 @bot.group(pass_context=True, help='Generate random teams of four from a given pool')
 @asyncio.coroutine
 def squad(ctx):
-    pass
+    if ctx.invoked_subcommand is None:
+        yield from bot.say('No context provided!')
 
 
 @squad.command(name='new', help='Create a new pool of players to pick from')
@@ -220,6 +221,21 @@ def _remove_squad(member: str):
 @asyncio.coroutine
 def _next_squad():
     yield from bot.say(squad_maker.refresh_team())
+
+
+# --- UTILITY FUNCTIONS --- #
+
+@bot.command(help='Tell the bot to join a new server')
+@asyncio.coroutine
+def join(url: str):
+    try:
+        bot.accept_invite(url)
+    except discord.NotFound:
+        bot.say('The invite provided has expired or is invalid! Please try again.')
+    except discord.HTTPException:
+        bot.say('The link provided did not work! Please try again.')
+    else:
+        bot.say('Joined!')
 
 
 while True:

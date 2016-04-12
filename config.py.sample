@@ -1,0 +1,6 @@
+import os
+
+# path to Splatoon data files
+HOME = os.path.expanduser('~') + '/splatoon_data/'
+# bot application token
+TOKEN = 'your_token_here'

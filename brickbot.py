@@ -6,12 +6,11 @@ import gear_finder
 import schedule
 import squad as s_maker
 import tag as t_handler
-import my_token
+import config
 from discord.ext import commands
 
 
 version = '7.0.1'
-HOME = os.path.expanduser('~') + '/splatoon_data/'
 
 description = 'Brickmastr\'s personal Discord Bot.'
 bot = commands.Bot(command_prefix='!', description=description)
@@ -22,11 +21,11 @@ rotations = schedule.Schedule()
 squad_maker = s_maker.Squad()
 
 maps = []
-with open(HOME + 'maps.txt', 'r') as f:
+with open(config.HOME + 'maps.txt', 'r') as f:
     for line in f:
         maps.append(line.rstrip())
 modes = []
-with open(HOME + 'modes.txt', 'r') as f:
+with open(config.HOME + 'modes.txt', 'r') as f:
     for line in f:
         modes.append(line.rstrip())
 
@@ -225,7 +224,7 @@ def _next_squad():
 
 while True:
     try:
-        bot.run(my_token.TOKEN)
+        bot.run(config.TOKEN)
     except KeyboardInterrupt:
         print('Interrupted. Signing out.')
         bot.logout()

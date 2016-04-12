@@ -6,11 +6,11 @@ import gear_finder
 import schedule
 import squad as s_maker
 import tag as t_handler
+import my_token
 from discord.ext import commands
 
 
 version = '7.0.1'
-token = 'OTQwNjM5MjgwNjUxNDI3ODQ.CerAuw.VPXANxDdMjq_wiRKhCZhTvSw2zA'
 HOME = os.path.expanduser('~') + '/splatoon_data/'
 
 description = 'Brickmastr\'s personal Discord Bot.'
@@ -225,7 +225,7 @@ def _next_squad():
 
 while True:
     try:
-        bot.run(token)
+        bot.run(my_token.TOKEN)
     except KeyboardInterrupt:
         print('Interrupted. Signing out.')
         bot.logout()

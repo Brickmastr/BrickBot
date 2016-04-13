@@ -20,14 +20,14 @@ class Tags:
         if ctx.invoked_subcommand is None:
             yield from self.bot.say(self.tag_handler.read_tag(name))
 
-    @tag.command(name='create', aliases=['add'])
+    @tag.command(aliases=['add'])
     @asyncio.coroutine
-    def _create(self, t: str, content: str):
+    def create(self, t: str, content: str):
         """Create a new tag."""
         yield from self.bot.say(self.tag_handler.create_tag(t, content))
 
-    @tag.command(name='remove')
+    @tag.command()
     @asyncio.coroutine
-    def _remove(self, t: str):
+    def remove(self, t: str):
         """Remove an existing tag."""
         yield from self.bot.say(self.tag_handler.remove_tag(t))

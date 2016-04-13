@@ -25,9 +25,9 @@ class RNG:
         if ctx.invoked_subcommand is None:
             yield from self.bot.say(rng.randint(0, 101))
 
-    @random.command(name='game')
+    @random.command()
     @asyncio.coroutine
-    def _game(self):
+    def game(self):
         """Have RNG select a Splatoon Map and Mode."""
         splatoon = self.bot.get_cog('Splatoon')
         if splatoon is None:
@@ -47,9 +47,9 @@ class RNG:
             return
         yield from self.bot.say(rng.choice(splatoon.maps))
 
-    @random.command(name='mode')
+    @random.command()
     @asyncio.coroutine
-    def _mode(self):
+    def mode(self):
         """Have RNG select a Splatoon Mode."""
         splatoon = self.bot.get_cog('Splatoon')
         if splatoon is None:
@@ -57,9 +57,9 @@ class RNG:
             return
         yield from self.bot.say(rng.choice(splatoon.modes))
 
-    @random.command(name='weapon')
+    @random.command()
     @asyncio.coroutine
-    def _weapon(self):
+    def weapon(self):
         """Have RNG select a Splatoon Weapon"""
         splatoon = self.bot.get_cog('Splatoon')
         if splatoon is None:
@@ -68,17 +68,18 @@ class RNG:
         w = [wpn[0] for wpn in splatoon.gear_finder.weapons]
         yield from self.bot.say(rng.choice(w))
 
-    @random.command(help='Generate a random number')
+    @random.command()
     @asyncio.coroutine
-    def _number(self, minimum=0, maximum=100):
+    def number(self, minimum=0, maximum=100):
         """Displays a random number within an optional range"""
         if minimum >= maximum:
             yield from self.bot.say('Maximum is smaller than minimum')
+            return
         yield from self.bot.say(rng.randint(minimum, maximum))
 
-    @random.command(name='pin')
+    @random.command()
     @asyncio.coroutine
-    def _pin(self, digits=4):
+    def pin(self, digits=4):
         """Have RNG generate a pin number.
 
         Defaults to four digits, but can be set. Maximum number of digits is 10.
@@ -90,7 +91,7 @@ class RNG:
 
     @random.command()
     @asyncio.coroutine
-    def tag(self, ctx):
+    def tag(self):
         """Displays a random tag."""
         tags = self.bot.get_cog('Tags')
         if tags is None:

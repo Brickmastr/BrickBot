@@ -41,36 +41,41 @@ def on_ready():
 
 # --- HELLO COMMAND --- #
 
-@bot.command(help='Greets the user and displays current version')
+@bot.command()
 @asyncio.coroutine
 def hello():
+    """Greets the user and displays current version."""
     msg = 'Greetings from BrickBot! My current version is **{}**'.format(version)
     yield from bot.say(msg)
 
 
 # --- SCHEDULING COMMANDS --- #
 
-@bot.command(help='Gets the current maps and modes on Splatoon')
+@bot.command()
 @asyncio.coroutine
 def current():
+    """Fetches the current map rotation in Splatoon."""
     yield from bot.say(rotations.maps(0))
 
 
-@bot.command(name='next', help='Gets the next maps and modes on Splatoon')
+@bot.command(name='next')
 @asyncio.coroutine
 def s_next():
+    """Fetches the upcoming map rotation in Splatoon."""
     yield from bot.say(rotations.maps(1))
 
 
-@bot.command(help='Gets the future maps and modes on Splatoon')
+@bot.command()
 @asyncio.coroutine
 def future():
+    """Fetches the future map rotation in Splatoon"""
     yield from bot.say(rotations.maps(2))
 
 
-@bot.command(help='Gets the current Splatoon rotation forecast')
+@bot.command()
 @asyncio.coroutine
 def schedule():
+    """Fetches the current Splatoon rotation schedule."""
     yield from bot.say(rotations.maps())
 
 
@@ -79,148 +84,183 @@ def schedule():
 @bot.command(help='Randomly select an entry from a list')
 @asyncio.coroutine
 def choose(*choices: str):
+    """Randomly select an entry from multiple choices.
+
+    You can use quotes to separate choices with spaces in them.
+    """
     yield from bot.say(random.choice(choices))
 
 
-@bot.group(name='random', pass_context=True, help='Randomly select from pre-defined lists or numbers')
+@bot.group(name='random', pass_context=True)
 @asyncio.coroutine
 def shuffle(ctx):
+    """Use an RNG to make choices."""
     if ctx.invoked_subcommand is None:
         yield from bot.say(random.randint(0, 101))
 
 
-@shuffle.command(name='game', help='Randomly select a map and mode combination in Splatoon')
+@shuffle.command(name='game')
 @asyncio.coroutine
 def _game():
+    """Have RNG select a Splatoon Map and Mode."""
     md = random.choice(modes)
     mp = random.choice(maps)
     yield from bot.say('{} on {}'.format(md, mp))
 
 
-@shuffle.command(name='map', help='Randomly select a map in Splatoon')
+@shuffle.command(name='map')
 @asyncio.coroutine
 def _map():
+    """Have RNG select a Splatoon Map."""
     yield from bot.say(random.choice(maps))
 
 
-@shuffle.command(name='mode', help='Randomly select a mode in Splatoon')
+@shuffle.command(name='mode')
 @asyncio.coroutine
 def _mode():
+    """Have RNG select a Splatoon Mode."""
     yield from bot.say(random.choice(modes))
 
 
-@shuffle.command(name='weapon', help='Randomly select a weapon in Splatoon')
+@shuffle.command(name='weapon')
 @asyncio.coroutine
 def _weapon():
+    """Have RNG select a Splatoon Weapon"""
     w = [wpn[0] for wpn in gear_list.weapons]
     yield from bot.say(random.choice(w))
 
 
 @shuffle.command(help='Generate a random number')
 @asyncio.coroutine
-def _number(ctx):
-    if len(ctx.args) == 0:
-        yield from bot.say(random.randint(0, 101))
-    elif len(ctx.args) == 1:
-        try:
-            msg = random.randint(0, float(ctx.args[0]))
-        except (ValueError, TypeError):
-            msg = 'Cannot evaluate "{}" as a number.'.format(ctx.args[0])
-        yield from bot.say(msg)
-    else:
-        try:
-            msg = random.randint(float(ctx.args[0]), float(ctx.args[1]))
-        except (ValueError, TypeError):
-            msg = 'Cannot evaluate "{0}" or "{1}" as a number.'.format(*ctx.args)
-        yield from bot.say(msg)
+def _number(minimum=0, maximum=100):
+    """Displays a random number within an optional range"""
+    if minimum >= maximum:
+        yield from bot.say('Maximum is smaller than minimum')
+    yield from bot.say(random.randint(minimum, maximum))
 
 
-@shuffle.command(name='pin', help='Randomly generate a four-digit pin')
+@shuffle.command(name='pin')
 @asyncio.coroutine
-def _pin():
-    yield from bot.say('{:04d}'.format(random.randint(0, 10000)))
+def _pin(digits=4):
+    """Have RNG generate a pin number.
+
+    Defaults to four digits, but can be set. Maximum number of digits is 10.
+    """
+    if digits > 10:
+        yield from bot.say('Too many digits! Max is 10.')
+    else:
+        yield from bot.say('{0:0{1}d}'.format(random.randint(0, 10**digits), digits))
 
 
 # --- GEAR --- #
 
-@bot.group(pass_context=True, help='Look up information on gear in Splatoon')
+@bot.group(pass_context=True)
 @asyncio.coroutine
 def gear(ctx):
+    """Look up information on gear in Splatoon."""
     if ctx.invoked_subcommand is None:
         yield from bot.say('Subcommand not found!')
 
 
-@gear.command(help='Find Splatoon gear with certain perk(s)')
+@gear.command()
 @asyncio.coroutine
 def find(*desired: str):
+    """Find all gear with the specified perks.
+
+    Use quotes around each perk name and the full text used in-game ("Ink Saver (Sub)").
+    Up to 6 perks can be queried.
+    """
     yield from bot.say(gear_list.find_abilities(desired))
 
 
-@gear.command(help='Learn about brand perks, gear abilities weapon kits')
+@gear.command()
 @asyncio.coroutine
 def define(desired: str):
+    """Look up information on gear and weapons."""
     yield from bot.say(gear_list.define_gear(desired))
 
 
 # --- TAG --- #
 
-@bot.group(pass_context=True, help='Create shortcuts to links')
+@bot.group(pass_context=True)
 @asyncio.coroutine
 def tag(ctx):
+    """Tags text for later use.
+
+    If a subcommand is not called, this will search for the tag and return it's text.
+    """
     if ctx.invoked_subcommand is None:
         yield from bot.say(tags.read_tag(ctx.args[0]))
 
 
-@tag.command(name='create', help='Create a shortcut to a link')
+@tag.command(name='create', aliases=['add'])
 @asyncio.coroutine
 def _create(t: str, content: str):
+    """Create a new tag."""
     yield from bot.say(tags.create_tag(t, content))
 
 
-@tag.command(name='remove', help='Remove an existing shortcut to a link')
+@tag.command(name='remove')
 @asyncio.coroutine
 def _remove(t: str):
+    """Remove an existing tag."""
     yield from bot.say(tags.remove_tag(t))
 
 
 # --- SQUAD --- #
 
-@bot.group(pass_context=True, help='Generate random teams of four from a given pool')
+@bot.group(pass_context=True)
 @asyncio.coroutine
 def squad(ctx):
+    """Generate random teams of four from a give pool.
+
+    Use the "create" subcommand to initialize a new squad,
+    then use "next" to generate new squads.
+    """
     if ctx.invoked_subcommand is None:
-        yield from bot.say('No context provided!')
+        yield from bot.say('No subcommand provided!')
 
 
 @squad.command(name='new', help='Create a new pool of players to pick from')
 @asyncio.coroutine
 def _new_squad(*members: str):
+    """Generate a new squad with the provided members.
+
+    Members can have spaces when using quotes around each member.
+    """
     yield from bot.say(squad_maker.new_squad(members))
 
 
-@squad.command(name='add', help='Add a player to the pool')
+@squad.command(name='add')
 @asyncio.coroutine
 def _add_squad(member: str):
+    """Add a member to the existing squad member pool."""
     yield from bot.say(squad_maker.add_member(member))
 
 
 @squad.command(name='remove', help='Remove a player from the pool')
 @asyncio.coroutine
 def _remove_squad(member: str):
+    """Remove a member from the existing squad member pool."""
     yield from bot.say(squad_maker.remove_member(member))
 
 
 @squad.command(name='next', help='Generate the next team')
 @asyncio.coroutine
 def _next_squad():
+    """Generate the next squad using the current pool."""
     yield from bot.say(squad_maker.refresh_team())
 
 
 # --- UTILITY FUNCTIONS --- #
 
-@bot.command(help='Tell the bot to join a new server')
+@bot.command()
 @asyncio.coroutine
 def join(url: str):
+    """Pass a Discord Invite URL to invite BrickBot to a new server!
+
+    NOTE: This function currently does not work.
+    """
     try:
         yield from bot.accept_invite(url)
     except discord.NotFound:

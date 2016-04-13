@@ -10,7 +10,7 @@ import discord
 from discord.ext import commands
 
 
-version = '7.0.1'
+version = '7.0.4'
 
 description = 'Brickmastr\'s personal Discord Bot.'
 bot = commands.Bot(command_prefix='!', description=description)
@@ -228,14 +228,15 @@ def _next_squad():
 @bot.command(help='Tell the bot to join a new server')
 @asyncio.coroutine
 def join(url: str):
+    print(url)
     try:
-        bot.accept_invite(url)
+        yield from bot.accept_invite(url)
     except discord.NotFound:
-        bot.say('The invite provided has expired or is invalid! Please try again.')
+        yield from bot.say('The invite provided has expired or is invalid! Please try again.')
     except discord.HTTPException:
-        bot.say('The link provided did not work! Please try again.')
+        yield from bot.say('The link provided did not work! Please try again.')
     else:
-        bot.say('Joined!')
+        yield from bot.say('Joined!')
 
 
 while True:
@@ -243,7 +244,7 @@ while True:
         bot.run(config.TOKEN)
     except KeyboardInterrupt:
         print('Interrupted. Signing out.')
-        bot.logout()
+        bot.close()
         break
     except TimeoutError:
         print('Connection Timed Out. Reconnecting in 15 seconds...')

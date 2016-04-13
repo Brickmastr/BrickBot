@@ -106,7 +106,7 @@ def _map():
 @shuffle.command(name='mode', help='Randomly select a mode in Splatoon')
 @asyncio.coroutine
 def _mode():
-    yield from bot.say(random.choice(maps))
+    yield from bot.say(random.choice(modes))
 
 
 @shuffle.command(name='weapon', help='Randomly select a weapon in Splatoon')
@@ -116,30 +116,23 @@ def _weapon():
     yield from bot.say(random.choice(w))
 
 
-@shuffle.command(name='number', help='Randomly generate a random number between 0 and 100')
+@shuffle.command(help='Generate a random number')
 @asyncio.coroutine
-def _number_a():
-    yield from bot.say(random.randint(0, 101))
-
-
-@shuffle.command(name='number1', help='Randomly generate a number less than the entered value')
-@asyncio.coroutine
-def _number_b(maximum: int):
-    try:
-        msg = random.randint(0, maximum)
-    except (ValueError, TypeError):
-        msg = 'Cannot evaluate "{}" as a number.'.format(maximum)
-    yield from bot.say(msg)
-
-
-@shuffle.command(name='number2', help='Randomly generate a number between two numbers')
-@asyncio.coroutine
-def _number_c(minimum: int, maximum: int):
-    try:
-        msg = random.randint(minimum, maximum)
-    except (ValueError, TypeError):
-        msg = 'Cannot evaluate "{}" or "{}" as a number.'.format(minimum, maximum)
-    yield from bot.say(msg)
+def _number(ctx):
+    if len(ctx.args) == 0:
+        yield from bot.say(random.randint(0, 101))
+    elif len(ctx.args) == 1:
+        try:
+            msg = random.randint(0, float(ctx.args[0]))
+        except (ValueError, TypeError):
+            msg = 'Cannot evaluate "{}" as a number.'.format(ctx.args[0])
+        yield from bot.say(msg)
+    else:
+        try:
+            msg = random.randint(float(ctx.args[0]), float(ctx.args[1]))
+        except (ValueError, TypeError):
+            msg = 'Cannot evaluate "{0}" or "{1}" as a number.'.format(*ctx.args)
+        yield from bot.say(msg)
 
 
 @shuffle.command(name='pin', help='Randomly generate a four-digit pin')
@@ -173,9 +166,9 @@ def define(desired: str):
 
 @bot.group(pass_context=True, help='Create shortcuts to links')
 @asyncio.coroutine
-def tag(ctx, t: str):
+def tag(ctx):
     if ctx.invoked_subcommand is None:
-        yield from bot.say(tags.read_tag(t))
+        yield from bot.say(tags.read_tag(ctx.args[0]))
 
 
 @tag.command(name='create', help='Create a shortcut to a link')
@@ -228,7 +221,6 @@ def _next_squad():
 @bot.command(help='Tell the bot to join a new server')
 @asyncio.coroutine
 def join(url: str):
-    print(url)
     try:
         yield from bot.accept_invite(url)
     except discord.NotFound:

@@ -2,6 +2,7 @@ import datetime
 import pyrfc3339
 import pytz
 import requests
+import config
 
 
 class Schedule:
@@ -11,8 +12,8 @@ class Schedule:
         self.client_id = '12af3d0a3a1f441eb900411bb50a835a'
         self.response_type = 'code'
         self.redirect_uri = 'https://splatoon.nintendo.net/users/auth/nintendo/callback'
-        self.username = 'Brickmastr.10e'
-        self.password = 'Joltik47'
+        self.username = config.NN_USER
+        self.password = config.NN_PWD
         self.cookie = {'_wag_session': self.get_new_splatnet_cookie()}
 
     def get_data(self):

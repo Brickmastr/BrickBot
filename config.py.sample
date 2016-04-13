@@ -4,3 +4,7 @@ import os
 HOME = os.path.expanduser('~') + '/splatoon_data/'
 # bot application token
 TOKEN = 'your_token_here'
+# Nintendo Network User Name
+NN_USER = 'your_user_name'
+# Nintendo Network Password
+NN_PWD = 'super_secret_password'

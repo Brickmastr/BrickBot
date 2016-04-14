@@ -31,3 +31,7 @@ class Tags:
     def remove(self, t: str):
         """Remove an existing tag."""
         yield from self.bot.say(self.tag_handler.remove_tag(t))
+
+
+def setup(bot):
+    bot.add_cog(Tags(bot))

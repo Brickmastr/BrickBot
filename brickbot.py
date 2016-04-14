@@ -7,10 +7,11 @@ from discord.ext import commands
 description = 'Brickmastr\'s personal Discord Bot.'
 
 initial_extensions = [
-    'cogs.meta'
-    'cogs.splatoon'
-    'cogs.rng'
-    'cogs.tags'
+    'cogs.meta',
+    'cogs.splatoon',
+    'cogs.rng',
+    'cogs.tags',
+    'cogs.music'
 ]
 
 bot = commands.Bot(command_prefix='!', description=description)

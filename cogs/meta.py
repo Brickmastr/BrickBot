@@ -31,3 +31,7 @@ class Meta:
             yield from self.bot.say('The link provided did not work! Please try again.')
         else:
             yield from self.bot.say('Joined!')
+
+
+def setup(bot):
+    bot.add_cog(Meta(bot))

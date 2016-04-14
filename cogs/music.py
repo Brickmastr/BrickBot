@@ -1,5 +1,9 @@
 from discord.ext import commands
+import discord
 import asyncio
+
+if not discord.opus.is_loaded():
+    discord.opus.load_opus('opus')
 
 
 class Music:
@@ -25,13 +29,15 @@ class Music:
         if ctx.invoked_subcommand is None:
             yield from self.bot.say('You need to pass a valid subcommand! See `!help dj`')
 
-    @dj.command(aliases=['connect'])
+    @dj.command(aliases=['connect'], pass_context=True)
     @asyncio.coroutine
-    def join(self, channel: str):
+    def join(self, ctx, channel: str):
         """Join a voice channel."""
         if self.bot.is_voice_connected():
             yield from self.bot.say('Already connected to a voice channel! Can\'t connect to another.')
             return
+        check = lambda c: c.name == channel and c.type == discord.ChannelType.voice
+        channel = discord.utils.find(check, ctx.message.server.channels)
         try:
             yield from self.bot.join_voice_channel(channel)
         except Exception as e:
@@ -75,3 +81,14 @@ class Music:
         """Resume playing music after pausing."""
         if self.player is not None and not self.is_playing():
             self.player.resume()
+
+    @dj.command()
+    @asyncio.coroutine
+    def next(self, filename: str):
+        """Adds a song to the playlist queue"""
+        yield from self.songs.put(filename)
+        yield from self.bot.say('Sucessfully registered {}'.format(filename))
+
+
+def setup(bot):
+    bot.add_cog(Music(bot))

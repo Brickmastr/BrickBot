@@ -101,3 +101,7 @@ class RNG:
         name = rng.choice(tags.tag_handler.tags.keys())
         t = tags.tag_handler.tags[name]
         yield from self.bot.say('Random tag: {}\n{}'.format(name, t))
+
+
+def setup(bot):
+    bot.add_cog(RNG(bot))

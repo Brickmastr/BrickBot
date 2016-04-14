@@ -97,3 +97,7 @@ class Splatoon:
     def _next_squad(self):
         """Generate the next squad using the current pool."""
         yield from self.bot.say(self.squad_maker.refresh_team())
+
+
+def setup(bot):
+    bot.add_cog(Splatoon(bot))

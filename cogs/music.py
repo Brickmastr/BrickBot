@@ -137,6 +137,13 @@ class Music:
         yield from self.bot.say('Currently playing: {0[url]}'.format(self.current))
         yield from self.bot.say('Added by {0[adder]}'.format(self.current))
 
+    @dj.command(aliases=['next'])
+    @asyncio.coroutine
+    def skip(self):
+        if self.player is not None:
+            self.player.stop()
+            self.player = None
+
 
 def setup(bot):
     bot.add_cog(Music(bot))

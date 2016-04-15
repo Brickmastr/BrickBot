@@ -1,7 +1,6 @@
 import config
 import collections
 import os
-import csv
 from random import shuffle
 
 
@@ -11,40 +10,29 @@ class PlayList:
         self.current_track = None
         self.next_track = None
         self.playlist = collections.deque()
+        self.load_from_file()
 
     def load_from_file(self):
-        directory = config.HOME + 'music/'
-        if not os.path.exists(directory):
-            os.makedirs(directory)
 
-        pl_file = directory + 'playlist.csv'
+        pl_file = config.HOME + 'playlist.txt'
         if not os.path.isfile(pl_file):
             return
 
-        with open(pl_file, 'rb') as csv_file:
-            reader = csv.DictReader(csv_file)
-            for row in reader:
-                self.songs.append(row)
+        with open(pl_file, 'r') as f:
+            for row in f:
+                title, url, adder = row.split(',')
+                self.songs.append({'title': title, 'url': url, 'adder': adder})
 
     def save_file(self):
-        directory = config.HOME + 'music/'
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        pl_file = config.HOME + 'playlist.txt'
 
-        pl_file = directory + 'playlist.csv'
-        if not os.path.isfile(pl_file):
-            return
-
-        field_names = ['title', 'url', 'adder']
-        with open(pl_file, 'w') as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=field_names)
-            writer.writeheader()
+        with open(pl_file, 'w') as f:
             for song in self.songs:
-                writer.writerow(song)
+                row = '{0[title]},{0[url]},{0[adder]}\n'.format(song)
+                f.write(row)
 
     def shuffle(self):
-        self.clear()
-        self.playlist.extend(self.songs)
+        self.playlist = collections.deque(self.songs)
         shuffle(self.playlist)
 
     def clear(self):
@@ -71,7 +59,7 @@ class PlayList:
         return msg
 
     def search(self, url):
-        for i, d in enumerate(self.playlist):
+        for i, d in enumerate(self.songs):
             if d['url'] == url:
                 return i
         return -1

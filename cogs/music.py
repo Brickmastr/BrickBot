@@ -10,25 +10,6 @@ if not discord.opus.is_loaded():
     discord.opus.load_opus('opus')
 
 
-class Song:
-    def __init__(self, meta):
-        self.meta = meta
-        self.file = None
-
-    def download_song(self, loop):
-        if self.file is None:
-            return
-        results = yield from extract_info(loop, self.meta['url'], download=True)
-        self.file = config.HOME + '/music/' + results['id']
-        os.rename(results['id'], self.file)
-
-    def delete_song(self):
-        if self.file is None:
-            return
-        os.remove(self.file)
-        self.file = None
-
-
 class Music:
     """Commands relating to playing music over Discord"""
 
@@ -46,14 +27,11 @@ class Music:
     def toggle_next_song(self):
         self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
-    @asyncio.coroutine
     def get_next_song(self):
         while len(self.play_list.playlist) == 0:
             self.play_list.shuffle()
-        song_meta = self.play_list.playlist.popleft()
-        song = Song(song_meta)
-        song.download_song(self.bot.loop)
-        self.songs.put(song)
+        song = self.play_list.playlist.popleft()
+        yield from self.songs.put(song)
 
     @commands.group(pass_context=True)
     @asyncio.coroutine
@@ -90,19 +68,17 @@ class Music:
         if self.is_playing():
             yield from self.bot.say('I\'m already playing a song!')
             return
-        yield from self.bot.say('Downloading first song....')
-        self.bot.loop.call_soon_threadsafe(self.get_next_song)
         while True:
-            self.bot.loop.call_soon_threadsafe(self.get_next_song)
+            yield from self.get_next_song()
             if not self.bot.is_voice_connected():
                 yield from self.bot.say('I\'m not connected to a voice channel!')
                 return
             self.play_next_song.clear()
             self.current = yield from self.songs.get()
-            self.player = self.bot.voice.create_ffmpeg_player(self.current.file, after=self.toggle_next_song)
+            print('"{0[title]}"'.format(self.current))
+            self.player = yield from self.bot.voice.create_ytdl_player(self.current['url'], after=self.toggle_next_song)
             self.player.start()
-            yield from self.bot.say('Playing "{0:title}" added by {0:adder}.'.format(self.current.meta))
-            self.current.delete()
+            yield from self.bot.say('Playing "{0[title]}" added by {0[adder]}.'.format(self.current))
             yield from self.play_next_song.wait()
 
     @dj.command()
@@ -136,7 +112,7 @@ class Music:
 
     @dj.command()
     @asyncio.coroutine
-    def remove(self, url):
+    def remove(self, url: str):
         """Removes a song from the playlist
 
         Pass a YouTube video link to remove the song.
@@ -146,18 +122,20 @@ class Music:
     @dj.command()
     @asyncio.coroutine
     def shuffle(self):
+        """Shuffles the songs in the playlist."""
         self.play_list.shuffle()
         yield from self.bot.say('Playlist Shuffled.')
 
     @dj.command(aliases=['current', 'video'])
     @asyncio.coroutine
     def source(self):
+        """Looks up the source video of the current song."""
         if self.current is None:
             yield from self.bot.say('No song currently playing.')
             return
 
-        self.bot.say('Currently playing: {0:url}'.format(self.current.meta))
-        self.bot.say('Added by {0:adder}'.format(self.current.meta))
+        yield from self.bot.say('Currently playing: {0[url]}'.format(self.current))
+        yield from self.bot.say('Added by {0[adder]}'.format(self.current))
 
 
 def setup(bot):

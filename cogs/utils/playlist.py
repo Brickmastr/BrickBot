@@ -20,8 +20,12 @@ class PlayList:
 
         with open(pl_file, 'r') as f:
             for row in f:
-                title, url, adder = row.split(',')
-                self.songs.append({'title': title, 'url': url, 'adder': adder})
+                try:
+                    title, url, adder = row.split(',')
+                except ValueError:
+                    pass
+                else:
+                    self.songs.append({'title': title, 'url': url, 'adder': adder.rstrip()})
 
     def save_file(self):
         pl_file = config.HOME + 'playlist.txt'

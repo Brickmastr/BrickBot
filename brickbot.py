@@ -57,9 +57,7 @@ def debug(ctx, *, code: str):
 while True:
     try:
         bot.run(config.TOKEN)
-    except KeyboardInterrupt:
-        print('Interrupted. Signing out.')
-        break
-    except (TimeoutError, RuntimeError):
-        print('Connection Timed Out. Reconnecting in 15 seconds...')
-        time.sleep(15)
+    except ConnectionResetError:
+        print('Internet has been reset. Trying to reconnect in 60 seconds....')
+        time.sleep(60)
+        print('Now attempting to reconnect....')

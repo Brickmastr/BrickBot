@@ -13,7 +13,7 @@ class Meta:
     @asyncio.coroutine
     def hello(self):
         """Greets the user and displays current version."""
-        msg = 'Greetings from BrickBot! My current version is **8.0.0cb**'
+        msg = 'Greetings from BrickBot! My current version is **8.0.1**'
         yield from self.bot.say(msg)
 
     @commands.command()

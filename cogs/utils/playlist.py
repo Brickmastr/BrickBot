@@ -5,12 +5,14 @@ from random import shuffle
 
 
 class PlayList:
-    def __init__(self):
+    def __init__(self, auto=True):
         self.songs = []
         self.current_track = None
         self.next_track = None
         self.playlist = collections.deque()
-        self.load_from_file()
+        self.auto = auto
+        if auto:
+            self.load_from_file()
 
     def load_from_file(self):
 
@@ -49,7 +51,10 @@ class PlayList:
 
         new_song = {'title': title, 'url': url, 'adder': adder}
         self.songs.append(new_song)
-        self.save_file()
+        if self.auto:
+            self.save_file()
+        else:
+            self.playlist.append(new_song)
         return '"{}" added to the playlist.'.format(title)
 
     def remove_song(self, url):
@@ -59,7 +64,8 @@ class PlayList:
 
         msg = '"{}" removed from the playlist.'.format(self.songs[index]['title'])
         self.songs.pop(index)
-        self.save_file()
+        if self.auto:
+            self.save_file()
         return msg
 
     def search(self, url):

@@ -27,13 +27,18 @@ class RNG:
 
     @random.command()
     @asyncio.coroutine
-    def game(self):
-        """Have RNG select a Splatoon Map and Mode."""
+    def game(self, incluce_tw='No'):
+        """Have RNG select a Splatoon Map and Mode.
+
+        Pass the optional argument as "yes" to include turf war.
+        """
         splatoon = self.bot.get_cog('Splatoon')
         if splatoon is None:
             yield from self.bot.say('Splatoon cog is not loaded.')
             return
         md = rng.choice(splatoon.modes)
+        while incluce_tw == 'No' and md == 'Turf War':
+            md = rng.choice(splatoon.modes)
         mp = rng.choice(splatoon.maps)
         yield from self.bot.say('{} on {}'.format(md, mp))
 
@@ -49,12 +54,18 @@ class RNG:
 
     @random.command()
     @asyncio.coroutine
-    def mode(self):
-        """Have RNG select a Splatoon Mode."""
+    def mode(self, incluce_tw='No'):
+        """Have RNG select a Splatoon Mode.
+
+        Pass the optional argument as "yes" to include turf war.
+        """
         splatoon = self.bot.get_cog('Splatoon')
         if splatoon is None:
             yield from self.bot.say('Splatoon cog is not loaded.')
             return
+        choice = rng.choice(splatoon.modes)
+        while incluce_tw == 'No' and choice == 'Turf War':
+            choice = rng.choice(splatoon.modes)
         yield from self.bot.say(rng.choice(splatoon.modes))
 
     @random.command()

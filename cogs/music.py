@@ -15,11 +15,13 @@ class Music:
 
     def __init__(self, bot):
         self.bot = bot
-        self.songs = asyncio.Queue()
+        self.auto_songs = asyncio.Queue()
         self.play_next_song = asyncio.Event()
         self.player = None
         self.current = None
-        self.play_list = playlist.PlayList()
+        self.auto_play_list = playlist.PlayList()
+        self.songs = asyncio.Queue()
+        self.play_list = playlist.PlayList(False)
 
     def is_playing(self):
         return self.player is not None and self.player.is_playing()
@@ -27,9 +29,13 @@ class Music:
     def toggle_next_song(self):
         self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
+    def get_next_auto_song(self):
+        while len(self.auto_play_list.playlist) == 0:
+            self.auto_play_list.shuffle()
+        song = self.auto_play_list.playlist.popleft()
+        yield from self.auto_songs.put(song)
+
     def get_next_song(self):
-        while len(self.play_list.playlist) == 0:
-            self.play_list.shuffle()
         song = self.play_list.playlist.popleft()
         yield from self.songs.put(song)
 
@@ -60,6 +66,26 @@ class Music:
     def leave(self):
         """Leave a voice channel."""
         yield from self.bot.voice.disconnect()
+
+    @dj.command(name='auto-play')
+    @asyncio.coroutine
+    def auto_play(self):
+        """Start playing music from the stored playlist!"""
+        if self.is_playing():
+            yield from self.bot.say('I\'m already playing a song!')
+            return
+        while True:
+            yield from self.get_next_song()
+            if not self.bot.is_voice_connected():
+                yield from self.bot.say('I\'m not connected to a voice channel!')
+                return
+            self.play_next_song.clear()
+            self.current = yield from self.auto_songs.get()
+            print('"{0[title]}"'.format(self.current))
+            self.player = yield from self.bot.voice.create_ytdl_player(self.current['url'], after=self.toggle_next_song)
+            self.player.start()
+            yield from self.bot.say('Playing "{0[title]}" added by {0[adder]}.'.format(self.current))
+            yield from self.play_next_song.wait()
 
     @dj.command()
     @asyncio.coroutine
@@ -97,7 +123,7 @@ class Music:
 
     @dj.command(pass_context=True)
     @asyncio.coroutine
-    def add(self, ctx, url: str):
+    def next(self, ctx, url: str):
         """Adds a song to the playlist
 
         Pass a YouTube video link to add the song.
@@ -110,20 +136,35 @@ class Music:
         msg = self.play_list.add_song(info['title'], url, ctx.message.author.name)
         yield from self.bot.say(msg)
 
+    @dj.command(pass_context=True)
+    @asyncio.coroutine
+    def add(self, ctx, url: str):
+        """Adds a song to the playlist for auto play
+
+        Pass a YouTube video link to add the song.
+        """
+        info = yield from extract_info(self.bot.loop, url, download=False)
+        if not info:
+            yield from self.bot.say('Unable to access a video from that link!')
+            return
+
+        msg = self.auto_play_list.add_song(info['title'], url, ctx.message.author.name)
+        yield from self.bot.say(msg)
+
     @dj.command()
     @asyncio.coroutine
     def remove(self, url: str):
-        """Removes a song from the playlist
+        """Removes a song from the playlist for auto play
 
         Pass a YouTube video link to remove the song.
         """
-        yield from self.bot.say(self.play_list.remove_song(url))
+        yield from self.bot.say(self.auto_play_list.remove_song(url))
 
     @dj.command()
     @asyncio.coroutine
     def shuffle(self):
-        """Shuffles the songs in the playlist."""
-        self.play_list.shuffle()
+        """Shuffles the songs in the auto playlist."""
+        self.auto_play_list.shuffle()
         yield from self.bot.say('Playlist Shuffled.')
 
     @dj.command(aliases=['current', 'video'])
@@ -137,7 +178,7 @@ class Music:
         yield from self.bot.say('Currently playing: {0[url]}'.format(self.current))
         yield from self.bot.say('Added by {0[adder]}'.format(self.current))
 
-    @dj.command(aliases=['next'])
+    @dj.command()
     @asyncio.coroutine
     def skip(self):
         if self.player is not None:

@@ -19,6 +19,10 @@ class Splatoon:
         with open(config.HOME + 'modes.txt', 'r') as f:
             for line in f:
                 self.modes.append(line.rstrip())
+        self.blacklist = []
+        with open(config.HOME + 'game_blacklist.txt', 'r') as f:
+            for line in f:
+                self.blacklist.append(line.rstrip().split(','))
 
     @commands.command(aliases=['maps', 'rotation'])
     @asyncio.coroutine

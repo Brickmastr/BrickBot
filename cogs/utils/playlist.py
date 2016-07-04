@@ -50,9 +50,9 @@ class PlayList:
             return '"{}" already in the playlist, no need to add.'.format(title)
 
         new_song = {'title': title, 'url': url, 'adder': adder}
-        self.songs.append(new_song)
         if self.auto:
             self.save_file()
+            self.songs.append(new_song)
         else:
             self.playlist.append(new_song)
         return '"{}" added to the playlist.'.format(title)

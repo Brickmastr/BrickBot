@@ -27,20 +27,48 @@ class RNG:
 
     @random.command()
     @asyncio.coroutine
-    def game(self, incluce_tw='No'):
+    def game(self, incluce_tw='No', blacklist='Yes'):
         """Have RNG select a Splatoon Map and Mode.
 
-        Pass the optional argument as "yes" to include turf war.
+        include_tw: 'Yes' to include turf war as a mode option
+        blacklist: 'No' to include all map mode combinations, (default excludes rotations like RM Blackbelly)
         """
         splatoon = self.bot.get_cog('Splatoon')
         if splatoon is None:
             yield from self.bot.say('Splatoon cog is not loaded.')
             return
-        md = rng.choice(splatoon.modes)
-        while incluce_tw == 'No' and md == 'Turf War':
-            md = rng.choice(splatoon.modes)
         mp = rng.choice(splatoon.maps)
+        md = rng.choice(splatoon.modes)
+        while incluce_tw == 'No' and md == 'Turf War' or [md, mp] in splatoon.blacklist and blacklist == 'Yes':
+            mp = rng.choice(splatoon.maps)
+            md = rng.choice(splatoon.modes)
         yield from self.bot.say('{} on {}'.format(md, mp))
+
+    @random.command(invoke_without_command=True)
+    @asyncio.coroutine
+    def scrim(self, matches=9, blacklist='Yes'):
+        """Have RNG select a number of Splatoon matches to play out.
+
+        matches: number of matches to generate
+        blacklist: 'No' to include all map mode combinations, (default excludes rotations like RM Blackbelly)
+        """
+        splatoon = self.bot.get_cog('Splatoon')
+        if splatoon is None:
+            yield from self.bot.say('Splatoon cog is not loaded.')
+            return
+        match_list = []
+        modes = list(splatoon.modes)
+        modes.remove('Turf War')
+        rng.shuffle(splatoon.modes)
+        used_maps = []
+        for match in range(matches):
+            md = modes[match % 3]
+            mp = rng.choice(splatoon.maps)
+            while [md, mp] in splatoon.blacklist and blacklist.lower() == 'yes' or mp in used_maps:
+                mp = rng.choice(splatoon.maps)
+            used_maps.append(mp)
+            match_list.append('{} on {}'.format(md, mp))
+        yield from self.bot.say('\n'.join(match_list))
 
     @random.command(name='map')
     @asyncio.coroutine
@@ -54,7 +82,7 @@ class RNG:
 
     @random.command()
     @asyncio.coroutine
-    def mode(self, incluce_tw='No'):
+    def mode(self, incluce_tw: str='No'):
         """Have RNG select a Splatoon Mode.
 
         Pass the optional argument as "yes" to include turf war.
@@ -81,7 +109,7 @@ class RNG:
 
     @random.command()
     @asyncio.coroutine
-    def number(self, minimum=0, maximum=100):
+    def number(self, minimum: int=0, maximum: int=100):
         """Displays a random number within an optional range"""
         if minimum >= maximum:
             yield from self.bot.say('Maximum is smaller than minimum')
@@ -90,7 +118,7 @@ class RNG:
 
     @random.command()
     @asyncio.coroutine
-    def pin(self, digits=4):
+    def pin(self, digits: int=4):
         """Have RNG generate a pin number.
 
         Defaults to four digits, but can be set. Maximum number of digits is 10.
